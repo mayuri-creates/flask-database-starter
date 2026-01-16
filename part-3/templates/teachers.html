@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teachers</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; background: #f0f4f8; }
+        h1 { color: #2c3e50; }
+        nav a { margin-right: 15px; color: #3498db; text-decoration: none; font-weight: bold; }
+        table { border-collapse: collapse; width: 100%; background: white; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; }
+        th { background-color: #16a085; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        .empty { color: #888; font-style: italic; }
+        .btn-add { background:#27ae60; color:white; padding:10px 20px; border-radius:4px; text-decoration:none; display:inline-block; margin-top:10px; }
+        .btn-edit { background:#3498db; color:white; padding:5px 10px; border-radius:4px; text-decoration:none; margin-right:5px; }
+        .btn-delete { background:#e74c3c; color:white; padding:5px 10px; border-radius:4px; text-decoration:none; }
+    </style>
+</head>
+<body>
+
+    <h1>Teachers</h1>
+
+    <nav>
+        <a href="{{ url_for('index') }}">Students</a>
+        <a href="{{ url_for('courses') }}">Courses</a>
+        <a href="{{ url_for('teachers') }}">Teachers</a>
+    </nav>
+
+    <!-- Add Teacher Button -->
+    <a href="{{ url_for('add_teacher') }}" class="btn-add">+ Add Teacher</a>
+
+    {% if teachers %}
+        <table>
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Courses</th>
+                <th>Actions</th>
+            </tr>
+
+            {% for teacher in teachers %}
+            <tr>
+                <td>{{ teacher.id }}</td>
+                <td>{{ teacher.name }}</td>
+                <td>{{ teacher.email }}</td>
+                <td>
+                    {% for course in teacher.courses %}
+                        {{ course.name }}<br>
+                    {% endfor %}
+                </td>
+                <td>
+                    <a href="{{ url_for('edit_teacher', id=teacher.id) }}" class="btn-edit">Edit</a>
+                    <a href="{{ url_for('delete_teacher', id=teacher.id) }}" 
+                       onclick="return confirm('Delete this teacher?')" class="btn-delete">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </table>
+    {% else %}
+        <p class="empty">No teachers found.</p>
+    {% endif %}
+
+</body>
+</html>
+
