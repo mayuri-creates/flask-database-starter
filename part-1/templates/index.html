@@ -1,24 +1,74 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+    <meta charset="UTF-8">
     <title>Part 1 - Basic Flask + SQLite</title>
+
     <style>
-        body { font-family: Arial, sans-serif; margin: 40px; background: #f5f5f5; }
-        h1 { color: #333; }
-        table { border-collapse: collapse; width: 100%; background: white; }
-        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
-        th { background-color: #4CAF50; color: white; }
-        tr:nth-child(even) { background-color: #f2f2f2; }
-        .btn { display: inline-block; padding: 10px 20px; background: #4CAF50; color: white; text-decoration: none; border-radius: 5px; margin: 10px 0; }
-        .btn:hover { background: #45a049; }
-        .empty { color: #888; font-style: italic; }
+        body {
+            font-family: Arial, sans-serif;
+            margin: 40px;
+            background-color: #f5f5f5;
+        }
+
+        h1 {
+            color: #333;
+        }
+
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            background-color: white;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+
+        .empty {
+            color: #888;
+            font-style: italic;
+        }
+
+        hr {
+            margin-top: 30px;
+        }
     </style>
 </head>
+
 <body>
+
     <h1>Student List (Part 1 - Basic Database)</h1>
 
+    <!-- Button to add sample student -->
     <a href="/add" class="btn">+ Add Sample Student</a>
 
+    <!-- Check if students exist -->
     {% if students %}
         <table>
             <tr>
@@ -27,6 +77,8 @@
                 <th>Email</th>
                 <th>Course</th>
             </tr>
+
+            <!-- Loop through students -->
             {% for student in students %}
             <tr>
                 <td>{{ student['id'] }}</td>
@@ -41,6 +93,13 @@
     {% endif %}
 
     <hr>
-    <p><strong>What you learned:</strong> Connecting to SQLite, SELECT query, displaying data</p>
+
+    <p>
+        <strong>What you learned:</strong>
+        Connecting Flask with SQLite database, executing SELECT queries,
+        and displaying database records using Jinja2 templates.
+    </p>
+
 </body>
 </html>
+
