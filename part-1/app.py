@@ -17,7 +17,7 @@ import sqlite3  # Built-in Python library for SQLite database
 
 app = Flask(__name__)
 
-DATABASE = 'students.db'  # Database file name (will be created automatically)
+DATABASE = 'students.db'  # Database file name (auto-created)
 
 
 # =============================================================================
@@ -26,13 +26,13 @@ DATABASE = 'students.db'  # Database file name (will be created automatically)
 
 def get_db_connection():
     """Create a connection to the database"""
-    conn = sqlite3.connect(DATABASE)  # Connect to database file
-    conn.row_factory = sqlite3.Row  # This allows accessing columns by name (like dict)
+    conn = sqlite3.connect(DATABASE)
+    conn.row_factory = sqlite3.Row  # Access columns by name
     return conn
 
 
 def init_db():
-    """Create the table if it doesn't exist"""
+    """Create students table if it doesn't exist"""
     conn = get_db_connection()
     conn.execute('''
         CREATE TABLE IF NOT EXISTS students (
@@ -41,9 +41,9 @@ def init_db():
             email TEXT NOT NULL,
             course TEXT NOT NULL
         )
-    ''')  # SQL command to create table with 4 columns
-    conn.commit()  # Save changes to database
-    conn.close()  # Close connection
+    ''')
+    conn.commit()
+    conn.close()
 
 
 # =============================================================================
@@ -52,29 +52,44 @@ def init_db():
 
 @app.route('/')
 def index():
-    """Home page - Display all students from database"""
-    conn = get_db_connection()  # Step 1: Connect to database
-    students = conn.execute('SELECT * FROM students').fetchall()  # Step 2: Get all rows
-    conn.close()  # Step 3: Close connection
+    """Home page - Display all students"""
+    conn = get_db_connection()
+    students = conn.execute('SELECT * FROM students').fetchall()
+    conn.close()
     return render_template('index.html', students=students)
 
 
 @app.route('/add')
 def add_sample_student():
-    """Add a sample student to database (for testing)"""
+    """
+    Add sample students to database
+    (Exercise solution: adding different students)
+    """
     conn = get_db_connection()
-    conn.execute(
-        'INSERT INTO students (name, email, course) VALUES (?, ?, ?)',
-        ('John Doe', 'john@example.com', 'Python')  # ? are placeholders (safe from SQL injection)
-    )
-    conn.commit()  # Don't forget to commit!
-    conn.close()
-    return 'Student added! <a href="/">Go back to home</a>'
 
+    conn.executemany(
+        'INSERT INTO students (name, email, course) VALUES (?, ?, ?)',
+        [
+            ('Mayuri Mahajan', 'mayuri@gmail.com', 'Data Science'),
+            ('Amit Sharma', 'amit@gmail.com', 'Web Development'),
+            ('Sneha Patil', 'sneha@gmail.com', 'Machine Learning')
+        ]
+    )
+
+    conn.commit()
+    conn.close()
+
+    return 'Sample students added! <a href="/">Go back to home</a>'
+
+
+# =============================================================================
+# MAIN
+# =============================================================================
 
 if __name__ == '__main__':
     init_db()  # Create table when app starts
     app.run(debug=True)
+
 
 
 # =============================================================================
