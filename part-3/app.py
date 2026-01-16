@@ -12,9 +12,8 @@ What You'll Learn:
 Prerequisites: Complete part-1 and part-2
 Install: pip install flask-sqlalchemy
 """
-
 from flask import Flask, render_template, request, redirect, url_for, flash
-from flask_sqlalchemy import SQLAlchemy  # Import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key'
@@ -22,147 +21,203 @@ app.secret_key = 'your-secret-key'
 # =============================================================================
 # DATABASE CONFIGURATION
 # =============================================================================
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///school.db'  # Database file
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False  # Disable warning
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///school.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy(app)  # Initialize SQLAlchemy with app
-
+db = SQLAlchemy(app)
 
 # =============================================================================
-# MODELS (Python Classes = Database Tables)
+# MODELS
 # =============================================================================
 
-class Course(db.Model):  # Course table
-    id = db.Column(db.Integer, primary_key=True)  # Auto-increment ID
-    name = db.Column(db.String(100), nullable=False)  # Course name
-    description = db.Column(db.Text)  # Optional description
-
-    # Relationship: One Course has Many Students
-    students = db.relationship('Student', backref='course', lazy=True)
-
-    def __repr__(self):  # How to display this object
-        return f'<Course {self.name}>'
-
-
-class Student(db.Model):  # Student table
+# Teacher Model
+class Teacher(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
-    email = db.Column(db.String(120), unique=True, nullable=False)  # unique=True means no duplicates
+    email = db.Column(db.String(120), unique=True, nullable=False)
 
-    # Foreign Key: Links student to a course
+    courses = db.relationship('Course', backref='teacher', lazy=True)
+
+    def __repr__(self):
+        return f'<Teacher {self.name}>'
+
+# Course Model
+class Course(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    description = db.Column(db.Text)
+    teacher_id = db.Column(db.Integer, db.ForeignKey('teacher.id'), nullable=False)
+
+    students = db.relationship('Student', backref='course', lazy=True)
+
+    def __repr__(self):
+        return f'<Course {self.name}>'
+
+# Student Model
+class Student(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    email = db.Column(db.String(120), unique=True, nullable=False)
     course_id = db.Column(db.Integer, db.ForeignKey('course.id'), nullable=False)
 
     def __repr__(self):
         return f'<Student {self.name}>'
 
-
 # =============================================================================
-# ROUTES - Using ORM instead of raw SQL
+# ROUTES
 # =============================================================================
 
+# ---------------- STUDENTS ----------------
 @app.route('/')
 def index():
-    # OLD WAY (raw SQL): conn.execute('SELECT * FROM students').fetchall()
-    # NEW WAY (ORM):
-    students = Student.query.all()  # Get all students
+    students = Student.query.order_by(Student.name).all()
     return render_template('index.html', students=students)
-
-
-@app.route('/courses')
-def courses():
-    all_courses = Course.query.all()  # Get all courses
-    return render_template('courses.html', courses=all_courses)
-
 
 @app.route('/add', methods=['GET', 'POST'])
 def add_student():
     if request.method == 'POST':
-        name = request.form['name']
-        email = request.form['email']
-        course_id = request.form['course_id']
-
-        # OLD WAY: conn.execute('INSERT INTO students...')
-        # NEW WAY:
-        new_student = Student(name=name, email=email, course_id=course_id)  # Create object
-        db.session.add(new_student)  # Add to session
-        db.session.commit()  # Save to database
-
+        student = Student(
+            name=request.form['name'],
+            email=request.form['email'],
+            course_id=request.form['course_id']
+        )
+        db.session.add(student)
+        db.session.commit()
         flash('Student added successfully!', 'success')
         return redirect(url_for('index'))
 
-    courses = Course.query.all()  # Get courses for dropdown
+    courses = Course.query.all()
     return render_template('add.html', courses=courses)
-
 
 @app.route('/edit/<int:id>', methods=['GET', 'POST'])
 def edit_student(id):
-    # OLD WAY: conn.execute('SELECT * FROM students WHERE id = ?', (id,))
-    # NEW WAY:
-    student = Student.query.get_or_404(id)  # Get by ID or show 404 error
+    student = Student.query.get_or_404(id)
 
     if request.method == 'POST':
-        student.name = request.form['name']  # Just update the object
+        student.name = request.form['name']
         student.email = request.form['email']
         student.course_id = request.form['course_id']
-
-        db.session.commit()  # Save changes
-        flash('Student updated!', 'success')
+        db.session.commit()
+        flash('Student updated successfully!', 'success')
         return redirect(url_for('index'))
 
     courses = Course.query.all()
     return render_template('edit.html', student=student, courses=courses)
 
-
 @app.route('/delete/<int:id>')
 def delete_student(id):
     student = Student.query.get_or_404(id)
-    db.session.delete(student)  # Delete the object
+    db.session.delete(student)
     db.session.commit()
-
-    flash('Student deleted!', 'danger')
+    flash('Student deleted successfully!', 'danger')
     return redirect(url_for('index'))
 
+# ---------------- COURSES ----------------
+@app.route('/courses')
+def courses():
+    all_courses = Course.query.limit(10).all()
+    return render_template('courses.html', courses=all_courses)
 
 @app.route('/add-course', methods=['GET', 'POST'])
 def add_course():
     if request.method == 'POST':
-        name = request.form['name']
-        description = request.form.get('description', '')  # Optional field
-
-        new_course = Course(name=name, description=description)
-        db.session.add(new_course)
+        course = Course(
+            name=request.form['name'],
+            description=request.form['description'],
+            teacher_id=request.form['teacher_id']
+        )
+        db.session.add(course)
         db.session.commit()
-
-        flash('Course added!', 'success')
+        flash('Course added successfully!', 'success')
         return redirect(url_for('courses'))
 
-    return render_template('add_course.html')
+    teachers = Teacher.query.all()
+    return render_template('add_course.html', teachers=teachers)
 
+# ---------------- TEACHERS ----------------
+@app.route('/teachers')
+def teachers():
+    teacher_list = Teacher.query.filter(Teacher.name.like('%a%')).all()
+    return render_template('teachers.html', teachers=teacher_list)
+
+# ✅ ADD TEACHER + COURSE TOGETHER
+@app.route('/add-teacher', methods=['GET', 'POST'])
+def add_teacher():
+    if request.method == 'POST':
+
+        # 1️⃣ Create Teacher
+        teacher = Teacher(
+            name=request.form['teacher_name'],
+            email=request.form['teacher_email']
+        )
+        db.session.add(teacher)
+        db.session.commit()   # get teacher.id
+
+        # 2️⃣ Create Course for that Teacher
+        course = Course(
+            name=request.form['course_name'],
+            description=request.form['course_description'],
+            teacher_id=teacher.id
+        )
+        db.session.add(course)
+        db.session.commit()
+
+        flash('Teacher and Course added successfully!', 'success')
+        return redirect(url_for('teachers'))
+
+    return render_template('add_teacher.html')
+
+@app.route('/edit-teacher/<int:id>', methods=['GET', 'POST'])
+def edit_teacher(id):
+    teacher = Teacher.query.get_or_404(id)
+
+    if request.method == 'POST':
+        teacher.name = request.form['name']
+        teacher.email = request.form['email']
+        db.session.commit()
+        flash('Teacher updated successfully!', 'success')
+        return redirect(url_for('teachers'))
+
+    return render_template('edit_teacher.html', teacher=teacher)
+
+@app.route('/delete-teacher/<int:id>')
+def delete_teacher(id):
+    teacher = Teacher.query.get_or_404(id)
+    db.session.delete(teacher)
+    db.session.commit()
+    flash('Teacher deleted successfully!', 'danger')
+    return redirect(url_for('teachers'))
 
 # =============================================================================
-# CREATE TABLES AND ADD SAMPLE DATA
+# DATABASE INITIALIZATION
 # =============================================================================
-
 def init_db():
-    """Create tables and add sample courses if empty"""
     with app.app_context():
-        db.create_all()  # Create all tables based on models
+        db.create_all()
 
-        # Add sample courses if none exist
-        if Course.query.count() == 0:
-            sample_courses = [
-                Course(name='Python Basics', description='Learn Python programming fundamentals'),
-                Course(name='Web Development', description='HTML, CSS, JavaScript and Flask'),
-                Course(name='Data Science', description='Data analysis with Python'),
-            ]
-            db.session.add_all(sample_courses)  # Add multiple at once
+        if Teacher.query.count() == 0:
+            t1 = Teacher(name='Dr. Sharma', email='sharma@gmail.com')
+            t2 = Teacher(name='Prof. Mehta', email='mehta@gmail.com')
+            db.session.add_all([t1, t2])
             db.session.commit()
-            print('Sample courses added!')
 
+        if Course.query.count() == 0:
+            courses = [
+                Course(name='Python Basics', description='Intro to Python', teacher_id=1),
+                Course(name='Web Development', description='Flask & Web', teacher_id=2),
+                Course(name='Data Science', description='Data Analysis', teacher_id=1),
+            ]
+            db.session.add_all(courses)
+            db.session.commit()
 
+# =============================================================================
+# RUN APP
+# =============================================================================
 if __name__ == '__main__':
     init_db()
     app.run(debug=True)
+
+
 
 
 # =============================================================================
@@ -198,12 +253,7 @@ if __name__ == '__main__':
 # EXERCISE:
 # =============================================================================
 #
-# 1. Add a `Teacher` model with a relationship to Course 
-# (have one Course can be taught by many Teachers and one Teacher can only teach only one Course)
-# In other words, create new Teacher model exactly like Student with all others things same 
-# (relationship between the two, frontend page for teacher list, add new teacher, backend routes for add new teacher, edit teacher, delete teacher)
-# Additional exercise - display list of students with course name and teacher name (taken from the course name) and vice versa
-
+# 1. Add a `Teacher` model with a relationship to Course
 # 2. Try different query methods: `filter()`, `order_by()`, `limit()`
 #
 # =============================================================================
