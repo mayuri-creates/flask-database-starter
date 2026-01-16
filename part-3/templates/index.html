@@ -26,9 +26,11 @@
 <body>
     <h1>Student Management (Part 3 - SQLAlchemy ORM)</h1>
 
+    <!-- ✅ UPDATED NAVIGATION -->
     <nav>
         <a href="{{ url_for('index') }}">Students</a>
         <a href="{{ url_for('courses') }}">Courses</a>
+        <a href="{{ url_for('teachers') }}">Teachers</a>
     </nav>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -52,10 +54,10 @@
             </tr>
             {% for student in students %}
             <tr>
-                <td>{{ student.id }}</td>  <!-- ORM uses dot notation! -->
+                <td>{{ student.id }}</td>
                 <td>{{ student.name }}</td>
                 <td>{{ student.email }}</td>
-                <td><span class="course-badge">{{ student.course.name }}</span></td>  <!-- Access related course! -->
+                <td><span class="course-badge">{{ student.course.name }}</span></td>
                 <td>
                     <a href="{{ url_for('edit_student', id=student.id) }}" class="btn btn-edit">Edit</a>
                     <a href="{{ url_for('delete_student', id=student.id) }}" class="btn btn-delete"
@@ -69,6 +71,7 @@
     {% endif %}
 
     <hr>
-    <p><strong>Notice:</strong> We use <code>student.course.name</code> to access the related course - that's the power of ORM relationships!</p>
+    <p><strong>Notice:</strong> We use <code>student.course.name</code> to access the related course — that's the power of ORM relationships!</p>
 </body>
 </html>
+
