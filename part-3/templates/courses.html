@@ -17,11 +17,14 @@
     </style>
 </head>
 <body>
+
     <h1>Courses</h1>
 
+    <!-- ✅ FIXED NAVIGATION -->
     <nav>
         <a href="{{ url_for('index') }}">Students</a>
         <a href="{{ url_for('courses') }}">Courses</a>
+        <a href="{{ url_for('teachers') }}">Teachers</a>
     </nav>
 
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -39,15 +42,20 @@
         <h3>{{ course.name }}</h3>
         <p>{{ course.description or 'No description' }}</p>
         <p>
-            <span class="student-count">{{ course.students|length }} students enrolled</span>
-            <!-- course.students gives us all students in this course (relationship magic!) -->
+            <span class="student-count">
+                {{ course.students|length }} students enrolled
+            </span>
         </p>
     </div>
     {% else %}
-    <p>No courses yet.</p>
+        <p>No courses yet.</p>
     {% endfor %}
 
     <hr>
-    <p><strong>Relationship Demo:</strong> <code>course.students</code> automatically fetches all students in each course!</p>
+    <p>
+        <strong>Relationship Demo:</strong>
+        <code>course.students</code> automatically fetches all students in each course!
+    </p>
+
 </body>
 </html>
