@@ -14,6 +14,7 @@ Prerequisites: Complete all previous parts
 Install: pip install psycopg2-binary pymysql python-dotenv
 """
 
+
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash
 from flask_sqlalchemy import SQLAlchemy
